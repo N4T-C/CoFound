@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Routes, Route, Link, useLocation } from 'react-router-dom';
+import { Routes, Route, Link, useLocation, useNavigate, Navigate } from 'react-router-dom';
 import { Users, MessageCircle, Briefcase, Bell, Search, Plus, Home, Compass, Layout, Bookmark, Settings, Heart, UserPlus, Zap, Clock, ArrowLeft, Sparkles } from 'lucide-react';
 import Pulse from './views/Pulse';
 import Intel from './views/Intel';
@@ -41,8 +41,7 @@ const NOTIFICATIONS = [
     { id: 4, type: 'MATCH', actor: 'System', avatar: 'AI', content: 'New co-founder match found: Technical CTO in SF', time: '1d ago', read: true },
 ];
 
-const App = () => {
-    const [isLoggedIn, setIsLoggedIn] = useState(false);
+const MainApp = () => {
     const [isRailExpanded, setIsRailExpanded] = useState(false);
     const location = useLocation();
 
@@ -111,13 +110,7 @@ const App = () => {
             }, 100);
         }
     }, [isMobileSearchOpen]);
-
-    if (!isLoggedIn) {
-        return <LandingPage onLogin={() => setIsLoggedIn(true)}/>;
-    }
-
     const activeModule = location.pathname.toUpperCase().substring(1) || 'PULSE';
-
     return (<div className="min-h-screen bg-cofound-bg dark:bg-cofound-darkBg font-sans text-cofound-text dark:text-cofound-textDark flex flex-col transition-colors duration-300">
       
       {/* 1. HEADER (Adaptive: Sticky Desktop / Minimal Mobile) */}
@@ -341,5 +334,29 @@ const App = () => {
       </div>
 
     </div>);
+}
+
+const App = () => {
+    const [isLoggedIn, setIsLoggedIn] = useState(false);
+    const navigate = useNavigate();
+    const location = useLocation();
+
+    const handleLogin = () => {
+        setIsLoggedIn(true);
+        navigate('/');
+    };
+
+    useEffect(() => {
+        if (!isLoggedIn && location.pathname !== '/login') {
+            navigate('/login');
+        }
+    }, [isLoggedIn, location.pathname, navigate]);
+
+    return (
+        <Routes>
+            <Route path="/login" element={<LandingPage onLogin={handleLogin} />} />
+            <Route path="/*" element={isLoggedIn ? <MainApp /> : <Navigate to="/login" />} />
+        </Routes>
+    );
 };
 export default App;
