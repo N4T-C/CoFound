@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { Routes, Route, Link, useLocation } from 'react-router-dom';
 import { Users, MessageCircle, Briefcase, Bell, Search, Plus, Home, Compass, Layout, Bookmark, Settings, Heart, UserPlus, Zap, Clock, ArrowLeft, Sparkles } from 'lucide-react';
 import Pulse from './views/Pulse';
 import Intel from './views/Intel';
@@ -12,7 +13,9 @@ import Projects from './views/Projects';
 import LandingPage from './views/LandingPage';
 import Flux from './views/Flux';
 import { Avatar, Button } from './components/UI';
-const RailItem = ({ icon: Icon, label, active, expanded, onClick, badge }) => (<button onClick={onClick} className={`
+
+const RailItem = ({ icon: Icon, label, to, active, expanded, badge }) => (
+  <Link to={to} className={`
       w-full flex items-center gap-4 px-3 py-3 rounded-xl transition-all duration-200 group relative
       ${active
         ? 'bg-blue-50 text-cofound-blue font-bold dark:bg-white/10 dark:text-cofound-sky shadow-sm'
@@ -27,7 +30,9 @@ const RailItem = ({ icon: Icon, label, active, expanded, onClick, badge }) => (<
         {label}
       </span>)}
     {!expanded && active && (<div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-cofound-blue rounded-r-full"></div>)}
-  </button>);
+  </Link>
+);
+
 // --- NOTIFICATIONS MOCK DATA ---
 const NOTIFICATIONS = [
     { id: 1, type: 'LIKE', actor: 'Arun Kumar', avatar: 'AK', content: 'liked your post about "SaaS Pricing Models"', time: '2m ago', read: false },
@@ -35,10 +40,12 @@ const NOTIFICATIONS = [
     { id: 3, type: 'SYSTEM', actor: 'CoFound', avatar: 'C', content: 'Your profile strength is at 85%. Add a project to reach 100%.', time: '3h ago', read: true },
     { id: 4, type: 'MATCH', actor: 'System', avatar: 'AI', content: 'New co-founder match found: Technical CTO in SF', time: '1d ago', read: true },
 ];
+
 const App = () => {
     const [isLoggedIn, setIsLoggedIn] = useState(false);
-    const [activeModule, setActiveModule] = useState('PULSE');
     const [isRailExpanded, setIsRailExpanded] = useState(false);
+    const location = useLocation();
+
     // Initialize theme from localStorage or system preference
     const [theme, setTheme] = useState(() => {
         if (typeof window !== 'undefined') {
@@ -59,6 +66,7 @@ const App = () => {
     const notificationRef = useRef(null);
     const mobileSearchInputRef = useRef(null);
     const recentSearches = ['Vertical AI', 'SaaS Pricing Models', 'Marketing Growth', 'John Doe'];
+
     // Handle Theme Change and Persistence
     useEffect(() => {
         if (theme === 'dark') {
@@ -71,6 +79,7 @@ const App = () => {
         }
         localStorage.setItem('cofound_theme', theme);
     }, [theme]);
+
     // Click Outside to Close Notifications
     useEffect(() => {
         const handleClickOutside = (event) => {
@@ -81,6 +90,7 @@ const App = () => {
         document.addEventListener('mousedown', handleClickOutside);
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
+
     // Keyboard shortcut for search
     useEffect(() => {
         const handleKeyDown = (e) => {
@@ -92,6 +102,7 @@ const App = () => {
         window.addEventListener('keydown', handleKeyDown);
         return () => window.removeEventListener('keydown', handleKeyDown);
     }, []);
+
     // Auto-focus mobile search input when opened
     useEffect(() => {
         if (isMobileSearchOpen && mobileSearchInputRef.current) {
@@ -100,9 +111,13 @@ const App = () => {
             }, 100);
         }
     }, [isMobileSearchOpen]);
+
     if (!isLoggedIn) {
         return <LandingPage onLogin={() => setIsLoggedIn(true)}/>;
     }
+
+    const activeModule = location.pathname.toUpperCase().substring(1) || 'PULSE';
+
     return (<div className="min-h-screen bg-cofound-bg dark:bg-cofound-darkBg font-sans text-cofound-text dark:text-cofound-textDark flex flex-col transition-colors duration-300">
       
       {/* 1. HEADER (Adaptive: Sticky Desktop / Minimal Mobile) */}
@@ -130,9 +145,9 @@ const App = () => {
           </div>) : (<>
             {/* Left: Brand */}
             <div className="flex items-center gap-3 lg:w-64 shrink-0">
-              <div className="w-9 h-9 bg-gradient-to-br from-cofound-blue to-cofound-darkBlue rounded-xl flex items-center justify-center text-white shadow-md cursor-pointer active:scale-95 transition-transform" onClick={() => setActiveModule('PULSE')}>
+              <Link to="/" className="w-9 h-9 bg-gradient-to-br from-cofound-blue to-cofound-darkBlue rounded-xl flex items-center justify-center text-white shadow-md cursor-pointer active:scale-95 transition-transform">
                 <span className="font-bold text-xl tracking-tighter">C</span>
-              </div>
+              </Link>
               <span className="hidden md:block font-bold text-xl tracking-tight text-cofound-text dark:text-white">CoFound</span>
             </div>
 
@@ -205,20 +220,20 @@ const App = () => {
               </div>
               
               {/* MOBILE CHAT BUTTON (Top Right) */}
-              <button onClick={() => setActiveModule('CHAT')} className={`md:hidden w-10 h-10 flex items-center justify-center rounded-full transition-colors relative ${activeModule === 'CHAT' ? 'text-cofound-blue dark:text-cofound-sky bg-blue-50 dark:bg-white/10' : 'text-cofound-textLight dark:text-cofound-textDark/60 hover:bg-cofound-bg dark:hover:bg-white/10'}`}>
-                <MessageCircle size={22} className={activeModule === 'CHAT' ? 'fill-current' : ''}/>
+              <Link to="/chat" className={`md:hidden w-10 h-10 flex items-center justify-center rounded-full transition-colors relative ${location.pathname === '/chat' ? 'text-cofound-blue dark:text-cofound-sky bg-blue-50 dark:bg-white/10' : 'text-cofound-textLight dark:text-cofound-textDark/60 hover:bg-cofound-bg dark:hover:bg-white/10'}`}>
+                <MessageCircle size={22} className={location.pathname === '/chat' ? 'fill-current' : ''}/>
                 <span className="absolute top-2 right-2.5 w-2 h-2 bg-red-500 rounded-full border-2 border-white dark:border-cofound-darkCard shadow-sm pointer-events-none"></span>
-              </button>
+              </Link>
               
               <div className="h-8 w-[1px] bg-cofound-grey dark:bg-white/10 mx-1 hidden md:block"></div>
               
-              <button onClick={() => setActiveModule('PROFILE')} className={`flex items-center gap-3 hover:bg-cofound-bg dark:hover:bg-white/5 p-1.5 pr-4 rounded-full transition-colors border ${activeModule === 'PROFILE' ? 'border-cofound-blue bg-blue-50/50 dark:bg-white/10' : 'border-transparent hover:border-cofound-grey dark:hover:border-white/10'} hidden md:flex`}>
+              <Link to="/profile" className={`flex items-center gap-3 hover:bg-cofound-bg dark:hover:bg-white/5 p-1.5 pr-4 rounded-full transition-colors border ${location.pathname === '/profile' ? 'border-cofound-blue bg-blue-50/50 dark:bg-white/10' : 'border-transparent hover:border-cofound-grey dark:hover:border-white/10'} hidden md:flex`}>
                 <Avatar initials="SA" size="sm"/>
                 <div className="hidden lg:flex flex-col items-start leading-none gap-0.5">
                   <span className="text-xs font-bold text-cofound-text dark:text-white">Sanjay</span>
                   <span className="text-[10px] text-cofound-textLight dark:text-cofound-textDark/60 font-medium">Pro Plan</span>
                 </div>
-              </button>
+              </Link>
             </div>
           </>)}
       </header>
@@ -232,20 +247,20 @@ const App = () => {
             ${isRailExpanded ? 'w-[240px] shadow-2xl' : 'w-[80px]'}
           `} onMouseEnter={() => setIsRailExpanded(true)} onMouseLeave={() => setIsRailExpanded(false)}>
           <div className="flex-1 py-8 px-4 space-y-2 overflow-y-auto no-scrollbar">
-            <RailItem icon={Home} label="Home Feed" expanded={isRailExpanded} active={activeModule === 'PULSE'} onClick={() => setActiveModule('PULSE')}/>
-            <RailItem icon={Compass} label="Discovery" expanded={isRailExpanded} active={activeModule === 'INTEL'} onClick={() => setActiveModule('INTEL')}/>
-            <RailItem icon={Users} label="My Network" expanded={isRailExpanded} active={activeModule === 'SQUAD'} onClick={() => setActiveModule('SQUAD')}/>
-            <RailItem icon={Briefcase} label="Jobs" expanded={isRailExpanded} active={activeModule === 'JOBS'} onClick={() => setActiveModule('JOBS')}/>
-            <RailItem icon={MessageCircle} label="Messages" expanded={isRailExpanded} active={activeModule === 'CHAT'} onClick={() => setActiveModule('CHAT')} badge={true}/>
+            <RailItem icon={Home} label="Home Feed" expanded={isRailExpanded} to="/" active={location.pathname === '/'}/>
+            <RailItem icon={Compass} label="Discovery" expanded={isRailExpanded} to="/intel" active={location.pathname === '/intel'}/>
+            <RailItem icon={Users} label="My Network" expanded={isRailExpanded} to="/squad" active={location.pathname === '/squad'}/>
+            <RailItem icon={Briefcase} label="Jobs" expanded={isRailExpanded} to="/jobs" active={location.pathname === '/jobs'}/>
+            <RailItem icon={MessageCircle} label="Messages" expanded={isRailExpanded} to="/chat" active={location.pathname === '/chat'} badge={true}/>
             
             <div className="my-6 border-t border-cofound-grey dark:border-white/5 mx-2"></div>
             
-            <RailItem icon={Bookmark} label="Saved" expanded={isRailExpanded} active={activeModule === 'SAVED'} onClick={() => setActiveModule('SAVED')}/>
-            <RailItem icon={Layout} label="My Projects" expanded={isRailExpanded} active={activeModule === 'PROJECTS'} onClick={() => setActiveModule('PROJECTS')}/>
+            <RailItem icon={Bookmark} label="Saved" expanded={isRailExpanded} to="/saved" active={location.pathname === '/saved'}/>
+            <RailItem icon={Layout} label="My Projects" expanded={isRailExpanded} to="/projects" active={location.pathname === '/projects'}/>
           </div>
 
           <div className="p-4 border-t border-cofound-nav dark:border-white/5">
-             <RailItem icon={Settings} label="Settings" expanded={isRailExpanded} active={activeModule === 'SETTINGS'} onClick={() => setActiveModule('SETTINGS')}/>
+             <RailItem icon={Settings} label="Settings" expanded={isRailExpanded} to="/settings" active={location.pathname === '/settings'}/>
           </div>
         </aside>
 
@@ -254,16 +269,18 @@ const App = () => {
 
         {/* B. CENTER FEED (Responsive) */}
         <main className="flex-1 min-w-0 px-0 md:px-6 lg:px-10 py-0 md:py-8 pb-24 md:pb-8">
-           {activeModule === 'PULSE' && <Pulse />}
-           {activeModule === 'INTEL' && <Intel />}
-           {activeModule === 'SQUAD' && <Squad />}
-           {activeModule === 'CHAT' && <Chat />}
-           {activeModule === 'JOBS' && <Jobs />}
-           {activeModule === 'SETTINGS' && <SettingsView currentTheme={theme} onThemeChange={setTheme}/>}
-           {activeModule === 'PROFILE' && <Profile />}
-           {activeModule === 'SAVED' && <Saved />}
-           {activeModule === 'PROJECTS' && <Projects />}
-           {activeModule === 'FLUX' && <Flux />}
+           <Routes>
+              <Route path="/" element={<Pulse />} />
+              <Route path="/intel" element={<Intel />} />
+              <Route path="/squad" element={<Squad />} />
+              <Route path="/jobs" element={<Jobs />} />
+              <Route path="/chat" element={<Chat />} />
+              <Route path="/saved" element={<Saved />} />
+              <Route path="/projects" element={<Projects />} />
+              <Route path="/settings" element={<SettingsView currentTheme={theme} onThemeChange={setTheme} />} />
+              <Route path="/profile" element={<Profile />} />
+              <Route path="/flux" element={<Flux />} />
+           </Routes>
         </main>
 
         {/* C. RIGHT CONTEXT PANEL (Desktop Only) */}
@@ -295,15 +312,15 @@ const App = () => {
 
       {/* 4. MOBILE BOTTOM NAV (Glassmorphic) */}
       <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white/95 dark:bg-cofound-darkCard/95 backdrop-blur-xl border-t border-cofound-grey dark:border-white/5 px-2 py-2 flex justify-between items-end pb-safe z-50 shadow-[0_-4px_24px_rgba(0,0,0,0.05)]">
-        <button onClick={() => setActiveModule('PULSE')} className={`flex-1 min-w-0 flex flex-col items-center gap-1 p-2 transition-colors ${activeModule === 'PULSE' ? 'text-cofound-blue dark:text-cofound-sky' : 'text-cofound-textLight dark:text-cofound-textDark/40'}`}>
-           <Home size={24} strokeWidth={activeModule === 'PULSE' ? 2.5 : 2}/>
+        <Link to="/" className={`flex-1 min-w-0 flex flex-col items-center gap-1 p-2 transition-colors ${location.pathname === '/' ? 'text-cofound-blue dark:text-cofound-sky' : 'text-cofound-textLight dark:text-cofound-textDark/40'}`}>
+           <Home size={24} strokeWidth={location.pathname === '/' ? 2.5 : 2}/>
            <span className="text-[10px] font-bold tracking-tight truncate w-full text-center">Home</span>
-        </button>
+        </Link>
         
-        <button onClick={() => setActiveModule('FLUX')} className={`flex-1 min-w-0 flex flex-col items-center gap-1 p-2 transition-colors ${activeModule === 'FLUX' ? 'text-cofound-blue dark:text-cofound-sky' : 'text-cofound-textLight dark:text-cofound-textDark/40'}`}>
-           <Sparkles size={24} strokeWidth={activeModule === 'FLUX' ? 2.5 : 2}/>
+        <Link to="/flux" className={`flex-1 min-w-0 flex flex-col items-center gap-1 p-2 transition-colors ${location.pathname === '/flux' ? 'text-cofound-blue dark:text-cofound-sky' : 'text-cofound-textLight dark:text-cofound-textDark/40'}`}>
+           <Sparkles size={24} strokeWidth={location.pathname === '/flux' ? 2.5 : 2}/>
            <span className="text-[10px] font-bold tracking-tight truncate w-full text-center">AI</span>
-        </button>
+        </Link>
 
         {/* FLOATING CREATE BUTTON (Animated) */}
         <div className="relative -top-5 mx-1 flex-shrink-0">
@@ -312,15 +329,15 @@ const App = () => {
            </button>
         </div>
         
-        <button onClick={() => setActiveModule('PROFILE')} className={`flex-1 min-w-0 flex flex-col items-center gap-1 p-2 transition-colors ${activeModule === 'PROFILE' ? 'text-cofound-blue dark:text-cofound-sky' : 'text-cofound-textLight dark:text-cofound-textDark/40'}`}>
-           <Avatar initials="SA" size="xs" className={activeModule === 'PROFILE' ? 'ring-2 ring-cofound-blue dark:ring-cofound-sky' : ''}/>
+        <Link to="/profile" className={`flex-1 min-w-0 flex flex-col items-center gap-1 p-2 transition-colors ${location.pathname === '/profile' ? 'text-cofound-blue dark:text-cofound-sky' : 'text-cofound-textLight dark:text-cofound-textDark/40'}`}>
+           <Avatar initials="SA" size="xs" className={location.pathname === '/profile' ? 'ring-2 ring-cofound-blue dark:ring-cofound-sky' : ''}/>
            <span className="text-[10px] font-bold tracking-tight truncate w-full text-center">You</span>
-        </button>
+        </Link>
 
-        <button onClick={() => setActiveModule('SETTINGS')} className={`flex-1 min-w-0 flex flex-col items-center gap-1 p-2 transition-colors ${activeModule === 'SETTINGS' ? 'text-cofound-blue dark:text-cofound-sky' : 'text-cofound-textLight dark:text-cofound-textDark/40'}`}>
-           <Settings size={24} strokeWidth={activeModule === 'SETTINGS' ? 2.5 : 2}/>
+        <Link to="/settings" className={`flex-1 min-w-0 flex flex-col items-center gap-1 p-2 transition-colors ${location.pathname === '/settings' ? 'text-cofound-blue dark:text-cofound-sky' : 'text-cofound-textLight dark:text-cofound-textDark/40'}`}>
+           <Settings size={24} strokeWidth={location.pathname === '/settings' ? 2.5 : 2}/>
            <span className="text-[10px] font-bold tracking-tight truncate w-full text-center">Settings</span>
-        </button>
+        </Link>
       </div>
 
     </div>);
